@@ -332,14 +332,14 @@ grammar = Grammar.new(
     variable_name_without_bounds = identifier
     # word bounds are inefficient, but they are accurate
     variable_name = variableBounds[variable_name_without_bounds]
-    
+
     # now import doxygen
     require_relative PathFor[:pattern]["doxygen"]
     grammar[:comments] = [
         *doxygen(variable_name),
         *grammar[:comments]
     ]
-    
+
 #
 # Constants
 #
@@ -759,7 +759,8 @@ grammar = Grammar.new(
         Pattern.new(
             should_fully_match: [
                 "typename", "typename T", "typename... T", "template <typename> class T",
-                "class T = A", "template <typename> typename T = X"
+                "class T = A", "template <typename> typename T = X",
+                "template<typename...> typename T"
             ],
             match:
             # case 1: only one word
@@ -799,6 +800,9 @@ grammar = Grammar.new(
                 ).maybe(@spaces).then(
                     match: variable_name_without_bounds,
                     tag_as: "storage.type.template.argument.$match",
+                ).maybe(@spaces).maybe(
+                    match: /\.\.\./,
+                    tag_as: "punctuation.vararg-ellipses.template.definition",
                 ).maybe(@spaces).maybe(
                     match: variable_name_without_bounds,
                     tag_as: "entity.name.type.template",
